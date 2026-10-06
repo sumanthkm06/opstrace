@@ -1,0 +1,122 @@
+{
+  "id": null,
+  "uid": "opstrace-infrastructure",
+  "title": "OpsTrace Infrastructure & Incidents",
+  "tags": ["opstrace", "infrastructure", "incidents"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "description": "Host telemetry and current incident counts exported by OpsTrace and scraped by Prometheus.",
+  "annotations": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "name": "hostname",
+        "label": "Host",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+        "query": { "query": "label_values(opstrace_host_cpu_usage_percent, hostname)", "refId": "Prometheus-hosts" },
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "CPU Utilization",
+      "description": "Latest aggregate CPU utilization reported by each selected host.",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_host_cpu_usage_percent{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Memory Utilization",
+      "description": "Latest percentage of physical memory in use on each selected host.",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_host_memory_usage_percent{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Memory Used",
+      "description": "Latest used physical memory reported by each selected host.",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_host_memory_used_bytes{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Disk Utilization",
+      "description": "Filesystem utilization per mount point. Sustained high values indicate limited remaining capacity.",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_host_disk_usage_percent{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}} {{mountpoint}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Disk Free Space",
+      "description": "Latest free bytes by host and filesystem mount point.",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_host_disk_free_bytes{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}} {{mountpoint}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Network Throughput",
+      "description": "Per-interface sent and received bytes per second, calculated from cumulative counters.",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "rate(opstrace_host_network_bytes_total{hostname=~\"$hostname\"}[5m])", "legendFormat": "{{hostname}} {{interface}} {{direction}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "Bps", "min": 0 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Service Availability",
+      "description": "1 means the collector reports the systemd service as active; 0 means it is not active.",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "opstrace_service_up{hostname=~\"$hostname\"}", "legendFormat": "{{hostname}} {{service}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "bool", "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Active Incidents by Severity",
+      "description": "Current incidents in open, investigating, or mitigated status, grouped by severity. This is a current-state gauge, not an incident event rate.",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "sum by (severity) (opstrace_incidents{status=~\"open|investigating|mitigated\"})", "legendFormat": "{{severity}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Collector Batches",
+      "description": "Rate of successfully ingested collector telemetry batches.",
+      "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "rate(opstrace_telemetry_batches_received_total[5m])", "legendFormat": "batches/sec", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } }
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "Collector Errors",
+      "description": "Rate of non-fatal collection errors reported by hosts.",
+      "gridPos": { "x": 12, "y": 32, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "opstrace-prometheus" },
+      "targets": [{ "expr": "sum by (hostname) (rate(opstrace_collector_collection_errors_total[5m]))", "legendFormat": "{{hostname}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    }
+  ]
+}

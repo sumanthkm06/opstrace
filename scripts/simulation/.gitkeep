@@ -1,0 +1,5 @@
+# Placeholder for bounded, safe failure simulation scripts (Phase 19)
+# - simulate_cpu_spike.py (45-second bounded CPU load)
+# - simulate_memory_leak.py (150MB bounded memory hold)
+# - simulate_error_burst.py (50-event error log burst)
+# - simulate_bad_deployment.py (Synthetic change + error correlation)

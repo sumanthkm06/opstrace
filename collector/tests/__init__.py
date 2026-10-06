@@ -1,0 +1,3 @@
+"""
+OpsTrace Collector Test Suite
+"""
