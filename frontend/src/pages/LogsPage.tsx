@@ -3,12 +3,8 @@ import { logsApi } from '../services/api'
 import type { AnalysisResult } from '../types'
 import { LoadingState, ErrorState, EmptyState } from '../components/States'
 
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleString()
-}
-
-function pct(n: number): string {
-  return `${(n * 100).toFixed(1)}%`
+function fmtDate(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleString() : '—'
 }
 
 export default function LogsPage() {
@@ -61,25 +57,27 @@ export default function LogsPage() {
           <div className="grid-4 mb-4">
             <div className="card">
               <div className="card-title">Total Logs</div>
-              <div className="stat-value">{result.total_logs.toLocaleString()}</div>
+              <div className="stat-value">{result.total_logs_analyzed.toLocaleString()}</div>
             </div>
             <div className="card">
               <div className="card-title">Errors</div>
               <div className="stat-value" style={{ color: 'var(--sev-critical)' }}>
-                {result.error_count.toLocaleString()}
+                {result.total_errors.toLocaleString()}
               </div>
-              <div className="stat-sub">{pct(result.error_rate)} error rate</div>
+              <div className="stat-sub">
+                {result.error_rate_per_minute.toLocaleString(undefined, { maximumFractionDigits: 1 })} errors/min
+              </div>
             </div>
             <div className="card">
               <div className="card-title">Warnings</div>
               <div className="stat-value" style={{ color: 'var(--sev-medium)' }}>
-                {result.warning_count.toLocaleString()}
+                {result.total_warnings.toLocaleString()}
               </div>
             </div>
             <div className="card">
               <div className="card-title">Info</div>
               <div className="stat-value" style={{ color: 'var(--text-secondary)' }}>
-                {result.info_count.toLocaleString()}
+                {result.total_info.toLocaleString()}
               </div>
             </div>
           </div>

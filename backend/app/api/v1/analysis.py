@@ -9,8 +9,7 @@ through the Phase 6 analysis engine, returning a structured
 ``AnalysisResult`` as JSON.
 
 Design:
-  - Reuses the existing ``COLLECTOR_API_KEY`` bearer-token authentication
-    dependency from the Phase 5 log ingest router.
+  - Provides a read-only dashboard query over stored logs.
   - Database access uses the existing ``get_db`` dependency.
   - The analysis engine (``LogAnalyzer``) is instantiated per-request to
     remain stateless.
@@ -24,7 +23,6 @@ Query parameters:
           Accepted: DEBUG, INFO, WARNING, ERROR, CRITICAL.
 
 Security:
-  - Authorization header value is NEVER logged.
   - Log message content is treated as untrusted data throughout.
 """
 
@@ -34,38 +32,15 @@ import logging
 from datetime import timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from backend.app.core.config import get_settings
-from backend.app.api.auth import require_bearer_token
 from backend.app.core.database import get_db
 from backend.app.models.log import Log
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/logs", tags=["logs"])
-
-
-# ---------------------------------------------------------------------------
-# Authentication dependency (reused from Phase 5)
-# ---------------------------------------------------------------------------
-
-
-def _require_collector_auth(
-    authorization: str = Header(
-        default="",
-        description="Bearer token for collector/API authentication.",
-    )
-) -> None:
-    """
-    Validate the ``Authorization: Bearer <token>`` header.
-
-    Raises HTTP 403 if the token is absent or invalid.
-    The actual key value is NEVER logged.
-    """
-    settings = get_settings()
-    require_bearer_token(authorization, settings.COLLECTOR_API_KEY, settings.ENVIRONMENT)
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +57,6 @@ def _require_collector_auth(
         "Phase 6 analysis engine.  Returns classification counts, error groups "
         "(deduplicated by fingerprint), and error-rate statistics."
     ),
-    dependencies=[Depends(_require_collector_auth)],
 )
 def analyze_logs(
     db: Session = Depends(get_db),

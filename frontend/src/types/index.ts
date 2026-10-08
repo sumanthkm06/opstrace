@@ -167,20 +167,30 @@ export interface CorrelatedChanges {
 export interface ErrorGroup {
   fingerprint: string;
   count: number;
-  first_seen: string;
-  last_seen: string;
+  first_seen: string | null;
+  last_seen: string | null;
   sample_message: string;
   level: string;
+  source: string;
 }
 
 export interface AnalysisResult {
-  total_logs: number;
-  error_count: number;
-  warning_count: number;
-  info_count: number;
-  error_rate: number;
+  analyzed_at: string;
+  total_logs_analyzed: number;
+  total_info: number;
+  total_warnings: number;
+  total_errors: number;
+  total_critical: number;
+  total_unknown: number;
   error_groups: ErrorGroup[];
+  unique_error_fingerprints: number;
+  error_rate_per_minute: number;
+  error_rate_per_hour: number;
+  analysis_window_seconds: number;
+  window_start: string | null;
+  window_end: string | null;
   analysis_warnings: string[];
+  analysis_errors: string[];
 }
 
 // ─── Dependency / Impact ─────────────────────────────────────────────────────
